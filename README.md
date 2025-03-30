@@ -11,7 +11,8 @@ Uta-Chan is a Discord music bot that allows users to play music directly from Yo
 - [ ] Queues
 - [ ] Skip songs
 - [x] Pause Song
-- [ ] Resume Song
+- [X] Resume Song
+- [X] Leave channel
 - [ ] Spotify compatibility
 - [ ] SoundCloud compatibility
 - [ ] Deezer compatibility
