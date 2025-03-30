@@ -15,6 +15,7 @@ class Player(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.current_song: str | None = None
+        self.current_channel: any = None
         self.playlist: List[str] = []
         super().__init__()
 
@@ -24,6 +25,7 @@ class Player(commands.Cog):
 
     @app_commands.command(name="play", description="Play a song!")
     async def play(self, interaction: discord.Interaction, song: str):
+        await interaction.response.send_message("Adding song...")
         user: VoiceState | None = interaction.user.voice
 
         if user is None:
@@ -33,7 +35,8 @@ class Player(commands.Cog):
             return
 
         bot_voice: VoiceProtocol | None = interaction.guild.voice_client
-        await interaction.response.defer()
+
+        self.current_channel = interaction.channel
 
         if bot_voice:
             if bot_voice.channel != user.channel:
@@ -45,19 +48,20 @@ class Player(commands.Cog):
         url = get_video_url(song)
         stream_url = get_audio_stream(url)
         self.playlist.append(stream_url)
-
-        if bot_voice.is_playing():
-            await interaction.followup.send(f"Added to queue: {stream_url['title']}")
-        else:
-            await self.play_next(interaction, bot_voice)
+        await interaction.edit_original_response(content=f"Added to queue: {stream_url['title']}")
+        await self.play_next(interaction, bot_voice)
 
     async def play_next(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
-        if not self.playlist:
+        if len(self.playlist) == 0:
             self.current_song = None
+            await self.current_channel.send("There are no more songs in the queue")
+
             return
 
         stream_url = self.playlist.pop(0)
         self.current_song = stream_url['title']
+
+        await self.current_channel.send(f"Now playing: {self.current_song}")
 
         def after_playing(error):
             if error:
@@ -71,8 +75,6 @@ class Player(commands.Cog):
             ),
             after=after_playing
         )
-
-        await interaction.followup.send(f"Now playing: {stream_url['title']}")
 
     @app_commands.command(name="stop", description="Clear the queue and leaves the channel")
     async def stop(self, interaction: discord.Interaction):
@@ -153,6 +155,7 @@ class Player(commands.Cog):
             return
         else:
             self.current_song = None
+            self.current_channel = None
             self.playlist.clear()
             await voice_client.disconnect()
             await interaction.followup.send("Leaving the current channel")
