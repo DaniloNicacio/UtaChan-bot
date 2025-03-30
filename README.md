@@ -7,10 +7,10 @@
 Uta-Chan is a Discord music bot that allows users to play music directly from YouTube. This is the V2 version of a previous music bot project, improving performance and adding new features.
 
 ## Incoming Features
-- [ ] Play songs from YouTube (priority)
+- [x] Play songs from YouTube (priority)
 - [ ] Queues
 - [ ] Skip songs
-- [ ] Pause Song
+- [x] Pause Song
 - [ ] Resume Song
 - [ ] Spotify compatibility
 - [ ] SoundCloud compatibility
