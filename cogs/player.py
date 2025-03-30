@@ -1,14 +1,21 @@
+import asyncio
+from typing import List
 import discord
 from discord import app_commands, VoiceState, VoiceProtocol
 from discord.ext import commands
-
 from core.utils.yt_utils import get_audio_stream, get_video_url
+import discord
+from discord import app_commands, VoiceState, VoiceProtocol
+from discord.ext import commands
+from typing import List
+import asyncio
 
 
-class Channel(commands.Cog):
+class Player(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.current_song: str | None = None
+        self.playlist: List[str] = []
         super().__init__()
 
     @app_commands.command(name="hello", description="Says hello!")
@@ -21,35 +28,48 @@ class Channel(commands.Cog):
 
         if user is None:
             await interaction.response.send_message(
-                f"{interaction.user.mention} you need to connect to a voice channel.")
+                f"{interaction.user.mention}, you need to connect to a voice channel."
+            )
             return
 
         bot_voice: VoiceProtocol | None = interaction.guild.voice_client
-
         await interaction.response.defer()
 
         if bot_voice:
-            if bot_voice.channel == user.channel:
-                await interaction.followup.send(f"Already connected to {user.channel.name}.", ephemeral=True)
-                return
-
-            await bot_voice.move_to(user.channel)
-            await interaction.followup.send(f"Moved to {user.channel.name}.", ephemeral=True)
-            return
-
-        await user.channel.connect()
+            if bot_voice.channel != user.channel:
+                await bot_voice.move_to(user.channel)
+                await interaction.followup.send(f"Moved to {user.channel.name}.", ephemeral=True)
+        else:
+            bot_voice = await user.channel.connect()
 
         url = get_video_url(song)
         stream_url = get_audio_stream(url)
+        self.playlist.append(stream_url)
+
+        if bot_voice.is_playing():
+            await interaction.followup.send(f"Added to queue: {stream_url['title']}")
+        else:
+            await self.play_next(interaction, bot_voice)
+
+    async def play_next(self, interaction: discord.Interaction, voice_client: discord.VoiceClient):
+        if not self.playlist:
+            self.current_song = None
+            return
+
+        stream_url = self.playlist.pop(0)
         self.current_song = stream_url['title']
 
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=interaction.guild)
+        def after_playing(error):
+            if error:
+                print(f"Error in playback: {error}")
+            asyncio.run_coroutine_threadsafe(self.play_next(interaction, voice_client), self.bot.loop)
 
         voice_client.play(
             discord.FFmpegOpusAudio(
                 stream_url['url'],
                 before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
-            )
+            ),
+            after=after_playing
         )
 
         await interaction.followup.send(f"Now playing: {stream_url['title']}")
@@ -63,13 +83,14 @@ class Channel(commands.Cog):
                 f"{interaction.user.mention} you need to connect to a voice channel")
             return
 
-
         voice_client = discord.utils.get(self.bot.voice_clients, guild=interaction.guild)
 
         await interaction.response.defer()
 
         if voice_client.is_playing() or voice_client.is_paused():
             voice_client.stop()
+            self.current_song = None
+            self.playlist.clear()
             await interaction.followup.send("Cleaning the queue and stop current song")
             return
         else:
@@ -132,9 +153,10 @@ class Channel(commands.Cog):
             return
         else:
             self.current_song = None
+            self.playlist.clear()
             await voice_client.disconnect()
             await interaction.followup.send("Leaving the current channel")
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Channel(bot))
+    await bot.add_cog(Player(bot))
