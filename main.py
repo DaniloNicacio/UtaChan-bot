@@ -11,15 +11,10 @@ from core.settings import settings
 sys.path.append(str(Path(__file__).parent))
 
 async def load_cogs(bot: discord.ext.commands.Bot):
-    cogs_dir = Path(__file__).parent / "cogs"
-    if not cogs_dir.exists():
-        print(f"Error: {cogs_dir} not found!")
-        return
-
-    for file in os.listdir(cogs_dir):
+    for file in os.listdir("cogs"):
         if file.endswith(".py"):
             try:
-                await bot.load_extension(f"cogs.{Path(file).stem}")  # `cogs` を明示的に指定
+                await bot.load_extension(f"cogs.{Path(file).stem}")
                 print(f"Loaded cog: {file}")
             except Exception as e:
                 print(f"Failed to load {file}: {e}")

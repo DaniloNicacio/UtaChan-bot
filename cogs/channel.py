@@ -21,15 +21,20 @@ class Channel(commands.Cog):
 
         bot_voice: VoiceProtocol | None = interaction.guild.voice_client
 
+        await interaction.response.defer()
+
         if bot_voice:
             if bot_voice.channel == user.channel:
                 # Just a placeholder
                 return
 
             await bot_voice.move_to(user.channel)
+            await interaction.followup.send(f"Moved to {user.channel.name}.", ephemeral=True)
             return
+
         await user.channel.connect()
-        await interaction.response.send_message("Joined your channel")
+        await interaction.followup.send("Joined your channel.", ephemeral=True)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Channel(bot))
