@@ -1,10 +1,9 @@
 ydl_opts = {
     'format': 'bestaudio/best',
-    'postprocessors':
-        {
+    'postprocessors': [{
         'key': 'FFmpegExtractAudio',
         'preferredcodec': 'opus',
-        },
+    }],
     'extractaudio': True,
     'audioformat': 'opus',
     'noplaylist': True,

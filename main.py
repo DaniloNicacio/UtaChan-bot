@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 import discord
@@ -25,7 +26,9 @@ class Client(discord.ext.commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
+        intents.voice_states = True
         super().__init__(command_prefix="!", intents=intents)
+        self.voice_check_tasks = {}
 
     async def setup_hook(self):
         await load_cogs(self)
@@ -35,8 +38,17 @@ class Client(discord.ext.commands.Bot):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
 
     async def on_message(self, message: discord.Message):
-        print(f'Message received: {message.content}')
         await self.process_commands(message)
+
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        voice_state = member.guild.voice_client
+        if voice_state is None:
+            return
+
+        if len(voice_state.channel.members) == 1:
+            await asyncio.sleep(300)
+            await voice_state.disconnect()
+
 
 bot = Client()
 bot.run(settings.TOKEN)
