@@ -35,6 +35,25 @@ class Channel(commands.Cog):
         await user.channel.connect()
         await interaction.followup.send("Joined your channel.", ephemeral=True)
 
+    @app_commands.command(name="stop", description="Clear the queue and leaves the channel")
+    async def stop(self, interaction: discord.Interaction):
+        user: VoiceState | None = interaction.user.voice
+
+        if user is None:
+            await interaction.response.send_message(
+                f"{interaction.user.mention} you need to connect to a voice channel.")
+            return
+
+        bot_voice: VoiceProtocol | None = interaction.guild.voice_client
+
+        await interaction.response.defer()
+
+        if bot_voice:
+            if bot_voice.channel == user.channel:
+                await bot_voice.disconnect()
+                return
+            return
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Channel(bot))
