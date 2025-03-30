@@ -3,6 +3,8 @@ import discord.ext.commands
 from pathlib import Path
 import os
 
+from core.settings import settings
+
 
 async def load_cogs(bot: discord.ext.commands.Bot):
     for file in os.listdir("cogs"):
@@ -32,3 +34,5 @@ class Client(discord.ext.commands.Bot):
         print(f'Message received: {message.content}')
         await self.process_commands(message)
 
+bot = Client()
+bot.run(settings.TOKEN)

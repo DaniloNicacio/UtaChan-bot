@@ -77,7 +77,7 @@ ffmpeg -version
 ## Running the Bot
 To start Uta-Chan, simply run the following command inside the project directory:
 ```sh
-python ./app.py
+python ./main.py
 ```
 Ensure your Discord bot token is properly configured before running the bot.
 Please create a .env file on the root of the project before run this command.
