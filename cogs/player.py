@@ -1,8 +1,3 @@
-import asyncio
-from typing import List
-import discord
-from discord import app_commands, VoiceState, VoiceProtocol
-from discord.ext import commands
 from core.utils.yt_utils import get_audio_stream, get_video_url
 import discord
 from discord import app_commands, VoiceState, VoiceProtocol
@@ -70,7 +65,7 @@ class Player(commands.Cog):
 
         voice_client.play(
             discord.FFmpegOpusAudio(
-                stream_url['url'],
+                stream_url['stream_url'],
                 before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
             ),
             after=after_playing

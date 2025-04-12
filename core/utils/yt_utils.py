@@ -16,4 +16,10 @@ def get_video_url(query) -> str:
 def get_audio_stream(url) -> dict:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
-        return info
+        stream_url = info['url']
+        return {
+            'stream_url': stream_url,
+            'title': info.get('title'),
+            'duration': info.get('duration'),
+            'webpage_url': info.get('webpage_url')
+        }
